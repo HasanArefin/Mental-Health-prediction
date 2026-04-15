@@ -1,0 +1,23 @@
+# Shuffle balanced dataset
+balanced_data = balanced_data.sample(frac=1, random_state=42).reset_index(drop=True)
+
+
+# Text Vectorization with TF-IDF
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+X = balanced_data['statement'].fillna("")  # <-- FIX: Ensure no NaNs in text
+y = balanced_data['status_encoded']
+vectorizer = TfidfVectorizer(max_features=5000)
+X_tfidf = vectorizer.fit_transform(X)
+
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.2, stratify=y, random_state=42)
+
+
+# Train XGBoost
+from xgboost import XGBClassifier
+from sklearn.metrics import classification_report
+
+xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
+xgb_model.fit(X_train, y_train)
